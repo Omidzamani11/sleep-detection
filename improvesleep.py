@@ -10,8 +10,7 @@ import winsound
 from imutils import face_utils
 
 def play_alarm_sound():
-    winsound.Beep(500, 1000)  # Beep at 500 Hz for 1000 ms
-
+    winsound.Beep(500, 1000)  
 def eye_aspect_ratio(eye_points):
     A = dist.euclidean(eye_points[1], eye_points[5])
     B = dist.euclidean(eye_points[2], eye_points[4])
@@ -19,9 +18,9 @@ def eye_aspect_ratio(eye_points):
     return (A + B) / (2.0 * C)
 
 def mouth_aspect_ratio(mouth_points):
-    A = dist.euclidean(mouth_points[2], mouth_points[10])  # 51 to 59
-    B = dist.euclidean(mouth_points[4], mouth_points[8])   # 53 to 57
-    C = dist.euclidean(mouth_points[0], mouth_points[6])   # 49 to 55
+    A = dist.euclidean(mouth_points[2], mouth_points[10])  
+    B = dist.euclidean(mouth_points[4], mouth_points[8])   
+    C = dist.euclidean(mouth_points[0], mouth_points[6])   
     return (A + B) / (2.0 * C)
 
 ap = argparse.ArgumentParser()
