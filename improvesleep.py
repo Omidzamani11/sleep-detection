@@ -18,6 +18,12 @@ def eye_aspect_ratio(eye_points):
     C = dist.euclidean(eye_points[0], eye_points[3])
     return (A + B) / (2.0 * C)
 
+def mouth_aspect_ratio(mouth_points):
+    A = dist.euclidean(mouth_points[2], mouth_points[10])  # 51 to 59
+    B = dist.euclidean(mouth_points[4], mouth_points[8])   # 53 to 57
+    C = dist.euclidean(mouth_points[0], mouth_points[6])   # 49 to 55
+    return (A + B) / (2.0 * C)
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-w", "--webcam", type=int, default=0, help="index of webcam on system")
 ap.add_argument("-f", "--face_cascade_path", type=str, default='haarcascade_frontalface_default.xml', help="path to face cascade file")
@@ -35,9 +41,13 @@ predictor = dlib.shape_predictor(args["predictor_path"])
 
 EYE_AR_THRESH = 0.3
 EYE_AR_CONSEC_FRAMES = 10
-
+MOUTH_AR_THRESH = 0.6
+MOUTH_AR_CONSEC_FRAMES = 15
+YAWN_COUNTER = 0
+YAWN_ALARM_LIMIT = 3
 alarm_status = False
 COUNTER = 0
+MOUTH_COUNTER = 0
 
 while True:
     frame = vs.read()
@@ -59,19 +69,18 @@ while True:
         face_gray = gray[y:y+h, x:x+w]
         eyes = eye_cascade.detectMultiScale(face_gray)
 
-        if len(eyes) == 0:
-            print("Eyes closed or not detected!")
-        else:
-            print(f"Detected {len(eyes)} eye(s)")
-
         shape = predictor(gray, dlib.rectangle(x, y, x+w, y+h))
         shape_np = face_utils.shape_to_np(shape)
 
         leftEye = shape_np[36:42]
         rightEye = shape_np[42:48]
+        mouth = shape_np[48:68]
+
         leftEAR = eye_aspect_ratio(leftEye)
         rightEAR = eye_aspect_ratio(rightEye)
         ear = (leftEAR + rightEAR) / 2.0
+
+        mar = mouth_aspect_ratio(mouth)
 
         if ear < EYE_AR_THRESH:
             COUNTER += 1
@@ -87,8 +96,22 @@ while True:
             COUNTER = 0
             alarm_status = False
 
+        if mar > MOUTH_AR_THRESH:
+            MOUTH_COUNTER += 1
+            if MOUTH_COUNTER >= MOUTH_AR_CONSEC_FRAMES:
+                YAWN_COUNTER += 1
+                MOUTH_COUNTER = 0
+                print("Yawn Detected")
+                if YAWN_COUNTER >= YAWN_ALARM_LIMIT:
+                    play_alarm_sound()
+                    cv2.putText(frame, "YAWN ALERT!", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    print("Yawn alert triggered!")
+                    YAWN_COUNTER = 0
+        else:
+            MOUTH_COUNTER = 0
+
     cv2.imshow("Frame", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 vs.stop()
