@@ -10,7 +10,8 @@ import winsound
 from imutils import face_utils
 
 def play_alarm_sound():
-    winsound.Beep(500, 1000)  
+    winsound.Beep(500, 1000)  # Beep at 500 Hz for 1000 ms
+
 def eye_aspect_ratio(eye_points):
     A = dist.euclidean(eye_points[1], eye_points[5])
     B = dist.euclidean(eye_points[2], eye_points[4])
@@ -18,9 +19,9 @@ def eye_aspect_ratio(eye_points):
     return (A + B) / (2.0 * C)
 
 def mouth_aspect_ratio(mouth_points):
-    A = dist.euclidean(mouth_points[2], mouth_points[10])  
-    B = dist.euclidean(mouth_points[4], mouth_points[8])   
-    C = dist.euclidean(mouth_points[0], mouth_points[6])   
+    A = dist.euclidean(mouth_points[2], mouth_points[10])  # 51 to 59
+    B = dist.euclidean(mouth_points[4], mouth_points[8])   # 53 to 57
+    C = dist.euclidean(mouth_points[0], mouth_points[6])   # 49 to 55
     return (A + B) / (2.0 * C)
 
 ap = argparse.ArgumentParser()
@@ -28,7 +29,12 @@ ap.add_argument("-w", "--webcam", type=int, default=0, help="index of webcam on 
 ap.add_argument("-f", "--face_cascade_path", type=str, default='haarcascade_frontalface_default.xml', help="path to face cascade file")
 ap.add_argument("-e", "--eye_cascade_path", type=str, default='haarcascade_eye_tree_eyeglasses.xml', help="path to eye cascade file")
 ap.add_argument("-p", "--predictor_path", type=str, default='shape_predictor_68_face_landmarks.dat', help="path to dlib face landmark predictor")
+ap.add_argument("-s", "--sensitivity", type=int, default=5, help="sensitivity of drowsiness detection from 1 (least sensitive) to 10 (most sensitive)")
 args = vars(ap.parse_args())
+
+# Sensitivity scale definition (adjust values as needed)
+sensitivity_scale = np.linspace(0.2, 0.4, num=10)[::-1]  # From most to least sensitive
+EYE_AR_THRESH = sensitivity_scale[10-args["sensitivity"]]  # Index into this array using the sensitivity value
 
 vs = VideoStream(src=args["webcam"]).start()
 time.sleep(2.0)
@@ -39,6 +45,9 @@ detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(args["predictor_path"])
 
 EYE_AR_THRESH = 0.3
+print("Sensitivity Level: ", args["sensitivity"])
+print("EAR Threshold: ", EYE_AR_THRESH)
+
 EYE_AR_CONSEC_FRAMES = 10
 MOUTH_AR_THRESH = 0.6
 MOUTH_AR_CONSEC_FRAMES = 15
