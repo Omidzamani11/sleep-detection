@@ -61,12 +61,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 sql
 Copy code
 
-### Creating the README.md
-- In your project directory, create a file named `README.md`.
-- Copy and paste the above content into the file.
-- Add and commit this file to Git:
-  ```bash
-  git add README.md
-  git commit -m "Add README"
-  git push
-This will set up your GitHub repository with your files and a comprehensive README to explain the project. If you need further customization or additional details in the README, feel free to adjust the content as needed!
